@@ -1,0 +1,12 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Hello') {
+            steps {
+	         git branch:'main',credentialsId:'github-token', 
+                        url:'https://github.com/wooshinkwak/test_jenkins2.git'
+	        }
+        }
+    }
+}
