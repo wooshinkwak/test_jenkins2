@@ -47,14 +47,23 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+       stage('Build Docker Image') {
             steps {
                 script {
                     def imageName = "test_jenkins_image"
+                    def containerName = "test_jenkins_container"
+                    
+                    // 기존 Docker 컨테이너 중지 및 삭제
+                    bat """
+                    docker stop ${containerName} || exit 0
+                    docker rm ${containerName} || exit 0
+                    """
+                    
                     // 기존 Docker 이미지 삭제
                     bat """
-                    docker rmi -f ${imageName}
+                    docker rmi -f ${imageName} || exit 0
                     """
+                    
                     // Dockerfile이 있는 디렉토리로 이동
                     dir('d:\\test_docker') {
                         def app = docker.build(imageName)
@@ -67,11 +76,6 @@ pipeline {
             steps {
                 script {
                     def containerName = "test_jenkins_container"
-                    // 기존 Docker 컨테이너 중지 및 삭제
-                    bat """
-                    docker stop ${containerName} || exit 0
-                    docker rm ${containerName} || exit 0
-                    """
                     // Docker 이미지 실행
                     docker.image("test_jenkins_image").run("-d --name ${containerName} -p 8081:8080")
                 }
