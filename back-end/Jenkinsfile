@@ -47,15 +47,13 @@ pipeline {
             }
         }
 
-                stage('Build Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     def imageName = "test_jenkins_image"
                     // 기존 Docker 이미지 삭제
                     bat """
-                    if docker images -q ${imageName}; then
-                        docker rmi -f ${imageName}
-                    fi
+                    docker rmi -f ${imageName}
                     """
                     // Dockerfile이 있는 디렉토리로 이동
                     dir('d:\\test_docker') {
@@ -71,10 +69,8 @@ pipeline {
                     def containerName = "test_jenkins_container"
                     // 기존 Docker 컨테이너 중지 및 삭제
                     bat """
-                    if docker ps -q -f name=${containerName}; then
-                        docker stop ${containerName}
-                        docker rm ${containerName}
-                    fi
+                    docker stop ${containerName} || exit 0
+                    docker rm ${containerName} || exit 0
                     """
                     // Docker 이미지 실행
                     docker.image("test_jenkins_image").run("-d --name ${containerName} -p 8081:8080")
