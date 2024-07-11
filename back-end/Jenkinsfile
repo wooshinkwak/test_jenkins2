@@ -57,7 +57,14 @@ pipeline {
                 }
             }
         }
-
+        stage('Run Docker Image') {
+            steps {
+                script {
+                    // Docker 이미지 실행
+                    docker.image("test_jenkins_image").run("-p 80:8080")
+                }
+            }
+        }
 
     }
 
