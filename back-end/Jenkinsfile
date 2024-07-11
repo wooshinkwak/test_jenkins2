@@ -34,14 +34,14 @@ pipeline {
             }
         }
 
-       stage('Copy WAR') {
+        stage('Copy WAR') {
             steps {
                 script {
                     def warFile = 'target\\sist-1.0.0-BUILD-SNAPSHOT.war'
                     def destDir = 'd:\\test_docker'
                     bat """
                     if not exist ${destDir} mkdir ${destDir}
-                    copy ${warFile} ${destDir}
+                    copy ${warFile} ${destDir}\\test_jenkins.war
                     """
                 }
             }
