@@ -47,12 +47,12 @@ pipeline {
             }
         }
 
-         stage('Build Docker Image') {
+                stage('Build Docker Image') {
             steps {
                 script {
                     def imageName = "test_jenkins_image"
                     // 기존 Docker 이미지 삭제
-                    sh """
+                    bat """
                     if docker images -q ${imageName}; then
                         docker rmi -f ${imageName}
                     fi
@@ -68,15 +68,16 @@ pipeline {
         stage('Run Docker Image') {
             steps {
                 script {
+                    def containerName = "test_jenkins_container"
                     // 기존 Docker 컨테이너 중지 및 삭제
-                    sh """
-                    if docker ps -q -f name=test_jenkins_container; then
-                        docker stop test_jenkins_container
-                        docker rm test_jenkins_container
+                    bat """
+                    if docker ps -q -f name=${containerName}; then
+                        docker stop ${containerName}
+                        docker rm ${containerName}
                     fi
                     """
                     // Docker 이미지 실행
-                    docker.image("test_jenkins_image").run("-d --name test_jenkins_container -p 8081:8080")
+                    docker.image("test_jenkins_image").run("-d --name ${containerName} -p 8081:8080")
                 }
             }
         }
