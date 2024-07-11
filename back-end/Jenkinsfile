@@ -47,21 +47,36 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+         stage('Build Docker Image') {
             steps {
                 script {
+                    def imageName = "test_jenkins_image"
+                    // 기존 Docker 이미지 삭제
+                    sh """
+                    if docker images -q ${imageName}; then
+                        docker rmi -f ${imageName}
+                    fi
+                    """
                     // Dockerfile이 있는 디렉토리로 이동
                     dir('d:\\test_docker') {
-                        def app = docker.build("test_jenkins_image")
+                        def app = docker.build(imageName)
                     }
                 }
             }
         }
+
         stage('Run Docker Image') {
             steps {
                 script {
+                    // 기존 Docker 컨테이너 중지 및 삭제
+                    sh """
+                    if docker ps -q -f name=test_jenkins_container; then
+                        docker stop test_jenkins_container
+                        docker rm test_jenkins_container
+                    fi
+                    """
                     // Docker 이미지 실행
-                    docker.image("test_jenkins_image").run("-p 80:8080")
+                    docker.image("test_jenkins_image").run("-d --name test_jenkins_container -p 8081:8080")
                 }
             }
         }
