@@ -34,6 +34,17 @@ pipeline {
             }
         }
 
+        stage('Copy WAR') {
+            steps {
+                script {
+                    def warFile = findFiles(glob: 'target/*.war')[0]
+                    def destDir = 'd:/test_docker'
+                    bat "if not exist ${destDir} mkdir ${destDir}"
+                    bat "copy ${warFile.path} ${destDir}"
+                }
+            }
+        }
+
 
     }
 

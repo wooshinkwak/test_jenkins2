@@ -1,0 +1,87 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven' 
+    }
+
+    environment {
+        JAVA_HOME = 'C:\\dev\\java-11-openjdk-11.0.15.9-1' // Java install.
+        PATH = "${env.JAVA_HOME}\\bin;${env.PATH}"
+        // DockerHub Credentials
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
+        // DockerHub Image Details
+        DOCKERHUB_IMAGE = "Onestar90/all_about_knowledge"
+        // Kubernetes Context
+        KUBECONFIG_CREDENTIALS = credentials('kubeconfig-credentials-id')
+    }
+
+    stages {
+        stage('Clone Repository') {//Git Clone
+            steps {
+                git branch: 'main', credentialsId: 'github-token', url: 'https://github.com/Onestar90/all_about_knowledge.git'
+            }
+        }
+        
+        stage('Build WAR') { //WAR build
+            steps {
+                script {
+                    def mvnHome = tool name: 'maven', type: 'hudson.tasks.Maven$MavenInstallation'
+                    withEnv(["MVN_HOME=${mvnHome}"]) {
+                        bat "\"${mvnHome}\\bin\\mvn\" clean package -DskipTests"
+                    }
+                }
+            }
+        }
+        
+        stage('Verify WAR') {
+            steps {
+                script {
+                    def warFile = 'target\\all_about_knowledge.war'
+                    if (!fileExists(warFile)) {
+                        error "WAR file not found: ${warFile}"
+                    }
+                }
+            }
+        }
+
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Dockerfile을 사용하여 Docker imgage build.
+                    def customImage = docker.build("${DOCKERHUB_IMAGE}:latest")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    // DockerHub image push
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        docker.image("${DOCKERHUB_IMAGE}:latest").push()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Kubernetes cluster deployment.
+                    withKubeConfig([credentialsId: 'kubeconfig-credentials-id']) {
+                        sh '''
+                        kubectl set image deployment/all_about_knowledge-deployment all_about_knowledge-deployment-container=${DOCKERHUB_IMAGE}:latest --record
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

@@ -1,0 +1,23 @@
+replicaCount: 3
+
+image:
+  repository: Onestar90/all_about_knowledge
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: chart-example.local #host가 없을 때는 아무주소를 입력
+      paths: []
+  tls: []
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: []
