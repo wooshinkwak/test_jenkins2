@@ -50,8 +50,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Dockerfile이 있는 디렉토리로 이동
                     dir('d:\\test_docker') {
-                        sh 'docker build -t test_jenkins_image .'
+                        def app = docker.build("test_jenkins_image")
                     }
                 }
             }
